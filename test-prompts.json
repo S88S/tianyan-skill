@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "prompt": "用天演优化一下 example-skill 这个 skill",
+    "expected": "Phase 0 判据校准报告 → Phase 1 基线评分卡 → Phase 2 证据包驱动编辑 → Phase 3 四层门控 → 人审 → 成果卡片"
+  },
+  {
+    "id": 2,
+    "prompt": "评估一下我的写作助手 skill 的质量，先别改",
+    "expected": "只跑 Phase 0-1（判据校准 + 基线评估），输出置信度报告与评分卡，不进编辑循环"
+  },
+  {
+    "id": 3,
+    "prompt": "跑一轮天演优化所有skills",
+    "expected": "全流程，按分数升序优先最低 5-10 个，每技能产出门控记录与汇总报告"
+  }
+]

@@ -1,0 +1,21 @@
+{
+  "name": "tianyan-skill",
+  "version": "2.2.0",
+  "author": "S88S",
+  "license": "MIT",
+  "description": "天演·多引擎合一的 Agent Skill 进化系统：判据校准→基线评估→wiki知识编译→证据驱动编辑→防膨胀→四层门控→棘轮保留→测试集生长→版本化发布。",
+  "source": "多来源机制整合，详见 README「来源与致谢」",
+  "generation": "human-authored + AI-assisted",
+  "dependencies": {
+    "python": ">=3.8",
+    "runtime": "stdlib-only（argparse / json / pathlib），无第三方依赖"
+  },
+  "permissions": {
+    "filesystem": "读写技能工作目录与临时目录",
+    "network": "默认拒绝未知外连",
+    "shell": "仅用于 git 版本操作与校验脚本",
+    "secrets": "无"
+  },
+  "eval_summary": "评测摘要见 README 与 wiki/skill-impact.md",
+  "approval_status": "pending"
+}
