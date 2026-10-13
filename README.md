@@ -56,7 +56,7 @@ Phase 6   版本化发布      —— 版本号 + 评测摘要 + 审批 + 回滚
 天演遵循 [Agent Skills](https://agentskills.io) 开放协议，可在任何 skills-compatible runtime 上运行（Claude Code、Codex、Cursor、OpenCode 等）。
 
 ```bash
-npx skills add <你的仓库地址> --skill tianyan-skill
+npx skills add S88S/tianyan-skill --skill tianyan-skill
 ```
 
 或手动：把整个 `tianyan-skill/` 目录放入你所用 runtime 的 skills 目录（如 `~/.claude/skills/`、`~/.codex/skills/`）。
