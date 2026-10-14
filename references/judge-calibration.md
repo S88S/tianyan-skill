@@ -26,7 +26,7 @@ SkillLens（arXiv:2605.23899）实证：LLM-as-judge 直接对比两份 skill �
 
 - spawn **5 个独立 judge**（general-purpose 子代理，无上下文共享）
 - **一半 judge 先读 V1 后读 V2，另一半反序**（消除位置偏差/锚定）
-- 每个 judge 按 9 维 rubric 给 V1、V2 各打一次分
+- 每个 judge 按 9 维 rubric 给 V1、V2 各打一次分，**逐维附 confidence（0-1）**：按判据逐条 ✓/✗ 打分，禁整体印象分；confidence < 0.7 的维度标 low_conf，不计入 Δ 统计、单列转人审
 
 ### 3. 计算
 
@@ -66,3 +66,21 @@ SkillLens（arXiv:2605.23899）实证：LLM-as-judge 直接对比两份 skill �
 
 对文本类 skill 反复实测的规律：**检查点（dim4）与失败模式（dim3）最敏感**，资源整合度（dim6）
 最钝。这与 SkillLens 关于 meta 三维度的结论一致——校准时应重点看 dim3/dim4 的 Δ 是否显著。
+
+## 判例对照库（Bad/Good — rubric 判据的可判定锚）
+
+> judge 打分前先对照判例：判据的 ✓/✗ 以"Bad/Good 之间"的可观察差异为准，不凭印象。判例风格对齐大厂提示词的 "Example of bad / Example of good" 惯例。
+
+| 维度 | ❌ Bad（该扣） | ✅ Good（该得） |
+|---|---|---|
+| dim1 Frontmatter | description="一个好用的工具"（无触发词、无时机） | description 含"触发：预审/审查…；不适用：非农发行场景" |
+| dim2 工作流 | "处理数据，然后输出报告"（无序号、无输入输出） | "S02 要素抽取（输入：docx；输出：report_profile，完整度 ≥85% 过）" |
+| dim3 失败模式 | "遇到问题灵活处理" | "企查查 MCP 不可用 → 列'未能核验'，不编造结果" |
+| dim4 检查点 | 关键决策无标记，一竿子跑到底 | "🔴 CHECKPOINT-1：要素抽取后回显用户确认再继续" |
+| dim5 具体性 | "根据情况适当调整阈值" | "长度比 >2.0 强制压缩；>1.9 建议压缩" |
+| dim6 资源整合 | 引用 references/foo.md 但文件不存在 | 引用路径全部可达（如 judge-calibration.md） |
+| dim7 整体架构 | "首先我们来看…其次值得注意的是…" | 章节直给结论、无填充句；红线跨节冗余有 CRITICAL_REPEAT 标记 |
+| dim8 实测表现 | with_skill 输出与 baseline 无差异或更差 | with_skill 盲评一致优于 baseline（2/2 judge 确认） |
+| dim9 反例黑名单 | 只有"要做到…"正面清单 | 有"❌ 不要…"清单且每条可判定（如"禁用 git reset --hard"） |
+
+**同源去重提醒**：判例与判据的多源引证若源自同一上游（互抄/蒸馏，实证：Kimi 人格段与 ChatGPT 逐句同源），只计一个独立来源——"多源一致"结论先查来源谱系。

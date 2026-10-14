@@ -4,10 +4,11 @@
 零依赖纯 Python。用法：
     python3 scripts/check_bloat.py <SKILL.md路径> [种子长度参考]
 
-检查三项：
+检查四项：
   1. 长度比：当前长度 vs 种子长度（默认取 SKILL.md 首次 commit 版本行数，可传参覆盖）
   2. 重复段：连续 3+ 行完全相同的块（疑似复制粘贴的规则/动作序列）
   3. FROZEN 保护：标记压缩候选区域时不得触碰受保护区
+  4. 红线冗余豁免：CRITICAL_REPEAT_START/END 标记区内的重复与行数不计入（关键红线"说三遍"属有意冗余）
 
 输出 JSON：{"ratio": x, "threshold_ok": bool, "duplicates": [...], "frozen_blocks": n}
 退出码：0 = 无需压缩；1 = 触发压缩建议（长度比超限或发现重复段）。
@@ -27,6 +28,9 @@ FROZEN_MARKERS = [
     "SLOW_UPDATE_START", "SLOW_UPDATE_END",
     "APPENDIX_START", "APPENDIX_END",
 ]
+# 关键红线冗余豁免（大厂"关键规则说三遍"实证）：标记区内重复/行数不计重复段与长度比
+CRITICAL_REPEAT_START = "CRITICAL_REPEAT_START"
+CRITICAL_REPEAT_END = "CRITICAL_REPEAT_END"
 
 
 def line_stats(text: str):
@@ -56,6 +60,23 @@ def find_duplicates(lines):
 
 def frozen_count(text: str):
     return sum(text.count(m) for m in FROZEN_MARKERS)
+
+
+def exempt_ranges(lines):
+    """解析 CRITICAL_REPEAT_START/END 豁免区（1-based 行号区间，含端点）。"""
+    ranges = []
+    start = None
+    for idx, l in enumerate(lines, 1):
+        if CRITICAL_REPEAT_START in l and start is None:
+            start = idx
+        elif CRITICAL_REPEAT_END in l and start is not None:
+            ranges.append((start, idx))
+            start = None
+    return ranges
+
+
+def in_ranges(pos, ranges):
+    return any(s <= pos <= e for s, e in ranges)
 
 
 def main():
@@ -93,8 +114,14 @@ def main():
         except Exception:
             pass
 
-    ratio = (total_lines / seed_lines) if seed_lines else None
-    dups = find_duplicates(text.splitlines())
+    lines = text.splitlines()
+    ranges = exempt_ranges(lines)
+    exempt_lines = sum(e - s + 1 for s, e in ranges)
+    ratio = ((total_lines - exempt_lines) / seed_lines) if seed_lines else None
+    dups_all = find_duplicates(lines)
+    dups, dups_exempt = [], []
+    for s, e, t in dups_all:
+        (dups_exempt if (in_ranges(s, ranges) or in_ranges(e, ranges)) else dups).append((s, e, t))
     frozen = frozen_count(text)
 
     trigger = False
@@ -118,6 +145,8 @@ def main():
         "ratio_target_max": RATIO_TARGET_MAX,
         "ratio_warn": RATIO_WARN,
         "duplicates": [{"start": s, "end": e, "sample": t} for s, e, t in dups],
+        "exempted_duplicates": [{"start": s, "end": e, "sample": t} for s, e, t in dups_exempt],
+        "critical_repeat_exempt_lines": exempt_lines,
         "frozen_marker_count": frozen,
         "compression_required": trigger,
         "reasons": reasons,
