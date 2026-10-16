@@ -1,6 +1,6 @@
 {
   "name": "tianyan-skill",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "author": "S88S",
   "license": "MIT",
   "description": "天演·多引擎合一的 Agent Skill 进化系统：判据校准→基线评估→wiki知识编译→证据驱动编辑→防膨胀→四层门控→棘轮保留→测试集生长→版本化发布。",
